@@ -127,14 +127,14 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
-              SOUL KNIGHT{' '}
+              DUNGEON CRAWLERS{' '}
               <div className="inline-block -skew-x-12 px-2 py-0.5 bg-[#ff3e3e]">
                 <span className="inline-block skew-x-12 text-[10px] sm:text-xs font-black text-[#0c0c16] tracking-wider uppercase">
-                  LIVING ROOM
+                  GUILD OUTPOST
                 </span>
               </div>
             </h1>
-            <p className="text-xs text-[#8a8aa8]">Choose your hero, upgrade abilities, and brave the dungeon!</p>
+            <p className="text-xs text-[#8a8aa8]">Choose your crawler, upgrade abilities, and brave the depths!</p>
           </div>
         </div>
 

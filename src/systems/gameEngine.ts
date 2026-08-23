@@ -1323,7 +1323,7 @@ export function damagePlayer(state: GameEngineState, damage: number) {
   }
 
   createFloatingText(state, player.x, player.y - 24, `-${damage}`, '#ef4444');
-  createRadialParticles(state, player.x, player.y, '#ef4444', 10);
+  createRadialParticles(state, player.x, player.y, '#ef4444', 3);
 
   if (player.stats.hp <= 0) {
     state.isGameOver = true;
@@ -1333,7 +1333,7 @@ export function damagePlayer(state: GameEngineState, damage: number) {
 
 function destroyObstacle(state: GameEngineState, obs: Obstacle) {
   obs.hp = 0;
-  createRadialParticles(state, obs.x + obs.width / 2, obs.y + obs.height / 2, '#78350f', 12);
+  createRadialParticles(state, obs.x + obs.width / 2, obs.y + obs.height / 2, '#78350f', 3);
   sound.playExplosion();
 
   if (obs.type === 'barrel_explosive') {
@@ -1477,21 +1477,21 @@ export function createRadialParticles(
   x: number,
   y: number,
   color: string,
-  count: number = 8
+  count: number = 3
 ) {
   for (let i = 0; i < count; i++) {
     const ang = (i / count) * Math.PI * 2;
-    const spd = 60 + Math.random() * 80;
+    const spd = 40 + Math.random() * 50;
     state.particles.push({
       id: `rp_${Date.now()}_${i}`,
       x,
       y,
       vx: Math.cos(ang) * spd,
       vy: Math.sin(ang) * spd,
-      radius: 3 + Math.random() * 2,
+      radius: 2.5,
       color,
       alpha: 1.0,
-      decay: 1.8,
+      decay: 2.5,
       shape: 'spark',
     });
   }

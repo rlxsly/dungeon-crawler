@@ -296,16 +296,23 @@ export default function App() {
         state.player.stats.shield = state.player.stats.maxShield;
       } else if (statueModalData.type === 'priest_buff') {
         state.player.stats.hp = state.player.stats.maxHp;
-        state.player.stats.energy = Math.min(state.player.stats.maxEnergy, state.player.stats.energy + 50);
+        state.player.stats.energy = Math.min(state.player.stats.maxEnergy, state.player.stats.energy + 60);
       } else if (statueModalData.type === 'knight_buff') {
-        state.player.stats.critRate = Math.min(0.5, state.player.stats.critRate + 0.06);
+        state.player.stats.critRate = Math.min(0.5, state.player.stats.critRate + 0.08);
       } else if (statueModalData.type === 'assassin_buff') {
-        state.player.stats.critRate = Math.min(0.5, state.player.stats.critRate + 0.06);
-        state.player.stats.speed = Math.min(280, state.player.stats.speed * 1.06);
+        state.player.stats.critRate = Math.min(0.5, state.player.stats.critRate + 0.08);
+        state.player.stats.speed = Math.min(280, state.player.stats.speed * 1.08);
       } else if (statueModalData.type === 'wizard_buff') {
-        state.player.stats.maxEnergy += 20;
-        state.player.stats.energy = Math.min(state.player.stats.maxEnergy, state.player.stats.energy + 20);
-        state.player.stats.cooldownReduction = Math.min(0.35, state.player.stats.cooldownReduction + 0.08);
+        state.player.stats.maxEnergy += 25;
+        state.player.stats.energy = Math.min(state.player.stats.maxEnergy, state.player.stats.energy + 25);
+        state.player.stats.cooldownReduction = Math.min(0.35, state.player.stats.cooldownReduction + 0.1);
+      } else if (statueModalData.type === 'berserker_buff') {
+        state.player.stats.damageMultiplier = (state.player.stats.damageMultiplier || 1.0) + 0.18;
+      } else if (statueModalData.type === 'rogue_buff') {
+        state.player.stats.critRate = Math.min(0.5, state.player.stats.critRate + 0.06);
+        state.player.stats.dodgeChance = Math.min(0.4, (state.player.stats.dodgeChance || 0) + 0.12);
+      } else if (statueModalData.type === 'thief_buff') {
+        state.player.stats.bonusCoins = (state.player.stats.bonusCoins || 0) + 2;
       }
 
       if (state.currentRoom.statueBlessing) {
@@ -313,7 +320,7 @@ export default function App() {
       }
 
       createFloatingText(state, state.player.x, state.player.y - 28, 'BLESSED!', '#38bdf8', true);
-      createRadialParticles(state, state.player.x, state.player.y, '#38bdf8', 16);
+      createRadialParticles(state, state.player.x, state.player.y, '#38bdf8', 4);
       setStatueModalData(null);
     }
   };

@@ -848,10 +848,10 @@ function renderFloatingTexts(ctx: CanvasRenderingContext2D, state: GameEngineSta
     ctx.save();
     ctx.globalAlpha = Math.max(0, ft.alpha);
     ctx.fillStyle = ft.color;
-    ctx.font = ft.isCrit ? 'bold 16px system-ui, sans-serif' : 'bold 13px system-ui, sans-serif';
+    ctx.font = ft.isCrit ? 'bold 15px system-ui, sans-serif' : 'bold 12px system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.shadowColor = '#000000';
-    ctx.shadowBlur = 4;
+    ctx.shadowBlur = 1;
     ctx.fillText(ft.text, ft.x, ft.y);
     ctx.restore();
   });

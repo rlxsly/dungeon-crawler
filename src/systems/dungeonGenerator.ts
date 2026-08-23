@@ -85,20 +85,56 @@ export function generateDungeonLevel(stage: number, floor: number): DungeonLevel
     .map((_, i) => i)
     .filter((i) => i !== 0 && i !== endCoordIdx);
 
-  // Shuffle other indices
-  const shuffledOthers = [...otherIndices].sort(() => 0.5 - Math.random());
+  // Fisher-Yates shuffle room candidate indices
+  for (let i = otherIndices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const temp = otherIndices[i];
+    otherIndices[i] = otherIndices[j];
+    otherIndices[j] = temp;
+  }
 
-  if (shuffledOthers.length > 0) {
-    typeAssignments[shuffledOthers[0]] = 'chest';
+  // Dynamic, randomized special rooms pool per floor
+  const specialPool: RoomType[] = [];
+
+  // Chest rooms: Always at least 1, with 45% chance for a second
+  specialPool.push('chest');
+  if (Math.random() < 0.45 && otherIndices.length > 3) {
+    specialPool.push('chest');
   }
-  if (shuffledOthers.length > 1) {
-    typeAssignments[shuffledOthers[1]] = 'shop';
+
+  // Shop rooms: 75% chance for a merchant shop, 25% chance for secondary boutique
+  if (Math.random() < 0.75) {
+    specialPool.push('shop');
+    if (Math.random() < 0.25 && otherIndices.length > 4) {
+      specialPool.push('shop');
+    }
   }
-  if (shuffledOthers.length > 2) {
-    typeAssignments[shuffledOthers[2]] = 'statue';
+
+  // Shrines & Statues: 70% chance to spawn an ancient god statue
+  if (Math.random() < 0.7) {
+    specialPool.push('statue');
+    if (Math.random() < 0.3 && otherIndices.length > 5) {
+      specialPool.push('statue');
+    }
   }
-  if (shuffledOthers.length > 3) {
-    typeAssignments[shuffledOthers[3]] = 'upgrade';
+
+  // Upgrade Forges / Springs: 55% chance for blacksmith / wishing spring
+  if (Math.random() < 0.55) {
+    specialPool.push('upgrade');
+  }
+
+  // Shuffle special pool
+  for (let i = specialPool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const temp = specialPool[i];
+    specialPool[i] = specialPool[j];
+    specialPool[j] = temp;
+  }
+
+  // Distribute special rooms randomly across available slots (cap at ~45% of rooms so majority are combat)
+  const maxSpecials = Math.min(specialPool.length, Math.max(1, Math.floor(otherIndices.length * 0.45)));
+  for (let i = 0; i < maxSpecials; i++) {
+    typeAssignments[otherIndices[i]] = specialPool[i];
   }
 
   const stepX = ROOM_WIDTH + CORRIDOR_LENGTH;
@@ -402,13 +438,24 @@ function generateRoomContent(room: Room, stage: number, floor: number, biome: st
       });
     }
   } else if (type === 'chest') {
-    // High tier treasure chest in center
-    const chestWeaponRarity = stage === 1 ? 'uncommon' : stage === 2 ? 'rare' : 'epic';
+    // Randomized chest tier and layout
+    const isGoldChest = Math.random() < 0.35;
+    const isEpicChest = Math.random() < 0.15;
+    const chestWeaponRarity = isEpicChest
+      ? 'legendary'
+      : isGoldChest
+      ? 'epic'
+      : stage === 1
+      ? 'uncommon'
+      : 'rare';
     const rewardWeapon = getRandomWeapon(chestWeaponRarity);
+    const goldReward = isGoldChest ? 40 + stage * 20 : 20 + stage * 10;
+    const energyReward = isGoldChest ? 80 + stage * 30 : 40 + stage * 20;
+
     room.chestReward = {
       weapon: rewardWeapon,
-      gold: 25 + stage * 15,
-      energy: 50 + stage * 25,
+      gold: goldReward,
+      energy: energyReward,
       opened: false,
     };
     obstacles.push({
@@ -421,53 +468,81 @@ function generateRoomContent(room: Room, stage: number, floor: number, biome: st
       opened: false,
     });
 
-    // Decorative treasure pillars
-    obstacles.push({
-      id: `${room.id}_tp_1`,
-      x: cx - 120,
-      y: cy - 20,
-      width: 36,
-      height: 36,
-      type: 'wall',
-    });
-    obstacles.push({
-      id: `${room.id}_tp_2`,
-      x: cx + 84,
-      y: cy - 20,
-      width: 36,
-      height: 36,
-      type: 'wall',
+    // Randomized decorative columns / urns
+    const decorOffsets = [
+      { ox: -130, oy: -20 },
+      { ox: 94, oy: -20 },
+    ];
+    decorOffsets.forEach((d, i) => {
+      obstacles.push({
+        id: `${room.id}_tp_${i}`,
+        x: cx + d.ox,
+        y: cy + d.oy,
+        width: 36,
+        height: 36,
+        type: 'wall',
+      });
     });
   } else if (type === 'shop') {
-    // 3 Shop items: weapons and potions
+    // 2 to 4 randomized shop items with varying offerings & positions
+    const itemCount = Math.random() < 0.4 ? 4 : 3;
     const shopRarity = stage === 1 ? 'uncommon' : stage === 2 ? 'rare' : 'epic';
-    const w1 = getRandomWeapon(shopRarity);
-    const w2 = Math.random() < 0.6 ? getRandomWeapon(shopRarity) : undefined;
+    const items = [];
 
-    room.shopItems = [
-      {
-        weapon: w1,
-        cost: 20 + stage * 10,
-        bought: false,
-        x: cx - 120,
-        y: cy + 10,
-      },
-      {
+    // Item 1: High quality weapon
+    const w1 = getRandomWeapon(shopRarity);
+    items.push({
+      weapon: w1,
+      cost: 18 + stage * 10,
+      bought: false,
+    });
+
+    // Item 2: Secondary weapon or HP potion
+    if (Math.random() < 0.65) {
+      const w2 = getRandomWeapon(shopRarity);
+      items.push({
         weapon: w2,
-        potionType: w2 ? undefined : 'hp',
-        cost: w2 ? 25 + stage * 12 : 12,
+        cost: 22 + stage * 12,
         bought: false,
-        x: cx,
-        y: cy + 10,
-      },
-      {
-        potionType: 'energy',
-        cost: 10,
+      });
+    } else {
+      items.push({
+        potionType: 'hp' as const,
+        cost: 12,
         bought: false,
-        x: cx + 120,
-        y: cy + 10,
-      },
-    ];
+      });
+    }
+
+    // Item 3: Energy or HP elixir
+    const pType: 'hp' | 'energy' = Math.random() < 0.5 ? 'energy' : 'hp';
+    items.push({
+      potionType: pType,
+      cost: 10,
+      bought: false,
+    });
+
+    // Optional Item 4: Mystery weapon
+    if (itemCount === 4) {
+      const w4 = getRandomWeapon(stage === 3 ? 'legendary' : 'epic');
+      items.push({
+        weapon: w4,
+        cost: 30 + stage * 15,
+        bought: false,
+      });
+    }
+
+    // Layout shop items dynamically
+    const spacing = 75;
+    const startX = cx - ((items.length - 1) * spacing) / 2;
+    room.shopItems = items.map((item, idx) => {
+      const itemX = startX + idx * spacing;
+      const itemY = cy + 10;
+      return {
+        ...item,
+        x: itemX,
+        y: itemY,
+      };
+    });
 
     room.shopItems.forEach((item, idx) => {
       obstacles.push({
@@ -481,13 +556,16 @@ function generateRoomContent(room: Room, stage: number, floor: number, biome: st
       });
     });
   } else if (type === 'statue') {
-    // Hero Statue
+    // 8 Expanded Ancient God Statues with varying blessings
     const statues = [
       { name: 'Statue of the Knight', cost: 15, type: 'knight_buff' },
       { name: 'Statue of the Paladin', cost: 20, type: 'paladin_buff' },
       { name: 'Statue of the Assassin', cost: 15, type: 'assassin_buff' },
       { name: 'Statue of the Priest', cost: 20, type: 'priest_buff' },
       { name: 'Statue of the Wizard', cost: 20, type: 'wizard_buff' },
+      { name: 'Statue of the Berserker', cost: 25, type: 'berserker_buff' },
+      { name: 'Statue of the Rogue', cost: 18, type: 'rogue_buff' },
+      { name: 'Statue of the Thief', cost: 15, type: 'thief_buff' },
     ];
     const chosen = statues[Math.floor(Math.random() * statues.length)];
     room.statueBlessing = { ...chosen, prayed: false };
@@ -499,6 +577,24 @@ function generateRoomContent(room: Room, stage: number, floor: number, biome: st
       width: 52,
       height: 72,
       type: 'statue',
+    });
+
+    // Flank statue with subtle decorative pillars
+    obstacles.push({
+      id: `${room.id}_statue_col_l`,
+      x: cx - 110,
+      y: cy - 20,
+      width: 32,
+      height: 32,
+      type: 'wall',
+    });
+    obstacles.push({
+      id: `${room.id}_statue_col_r`,
+      x: cx + 78,
+      y: cy - 20,
+      width: 32,
+      height: 32,
+      type: 'wall',
     });
   } else if (type === 'upgrade') {
     // Upgrade Forge Room: Blacksmith Anvil & Magic Wishing Spring

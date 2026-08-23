@@ -24,17 +24,23 @@ export const StatueModal: React.FC<StatueModalProps> = ({
   const getBlessingDescription = () => {
     switch (type) {
       case 'knight_buff':
-        return 'Increases Critical Strike Chance by +6% for this floor.';
+        return 'Increases Critical Strike Chance by +8% for this floor.';
       case 'paladin_buff':
         return 'Instantly restores full Shield and grants +1 temporary Shield.';
       case 'assassin_buff':
-        return 'Increases Critical Strike Chance by +6% and Movement Speed by +6%.';
+        return 'Increases Critical Strike Chance by +8% and Movement Speed by +8%.';
       case 'priest_buff':
-        return 'Restores full Health and +50 Energy.';
+        return 'Restores full Health and +60 Energy.';
       case 'wizard_buff':
-        return 'Increases Maximum Energy by +20 and reduces Hero Skill cooldown.';
+        return 'Increases Maximum Energy by +25 and reduces Skill cooldown.';
+      case 'berserker_buff':
+        return 'Increases all weapon damage by +18% for this floor.';
+      case 'rogue_buff':
+        return 'Grants +12% Dodge Chance and +6% Critical Strike.';
+      case 'thief_buff':
+        return 'Grants +2 bonus Gold per coin pickup.';
       default:
-        return 'Grants divine favor and protection in combat.';
+        return 'Grants divine favor and combat prowess.';
     }
   };
 
