@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    background-color: #0c0c16;
+    color: #e0e0ed;
+    font-family: 'Chakra Petch', 'JetBrains Mono', monospace, sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+}
+
+/* Custom Geometric Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0c0c16;
+  border-left: 1px solid #252545;
+}
+::-webkit-scrollbar-thumb {
+  background: #252545;
+  border: 1px solid #3effc3;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3effc3;
+}
+
+/* Geometric Grid Background Pattern */
+.geometric-grid-bg {
+  background-color: #0c0c16;
+  background-image: 
+    linear-gradient(to right, rgba(37, 37, 69, 0.4) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(37, 37, 69, 0.4) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.geometric-scanline {
+  background: linear-gradient(
+    to bottom,
+    rgba(255,255,255,0),
+    rgba(255,255,255,0) 50%,
+    rgba(0, 0, 0, 0.25) 50%,
+    rgba(0, 0, 0, 0.25)
+  );
+  background-size: 100% 4px;
+}

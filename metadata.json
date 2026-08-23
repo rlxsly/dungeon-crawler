@@ -1,0 +1,8 @@
+{
+  "name": "dungeon crawler",
+  "description": "A fast-paced top-down roguelike dungeon crawler inspired by Soul Knight, featuring hero classes, active skills, procedural dungeons, weapon arsenal, bullet hell bosses, and lobby upgrades.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
