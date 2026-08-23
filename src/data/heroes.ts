@@ -59,7 +59,7 @@ export const HEROES: Hero[] = [
     color: '#a855f7',
     accentColor: '#c084fc',
     unlocked: false,
-    gemCost: 200,
+    gemCost: 800,
   },
   {
     id: 'assassin',
@@ -79,7 +79,7 @@ export const HEROES: Hero[] = [
     color: '#10b981',
     accentColor: '#34d399',
     unlocked: false,
-    gemCost: 350,
+    gemCost: 1200,
   },
   {
     id: 'alchemist',
@@ -99,7 +99,7 @@ export const HEROES: Hero[] = [
     color: '#84cc16',
     accentColor: '#a3e635',
     unlocked: false,
-    gemCost: 450,
+    gemCost: 1500,
   },
   {
     id: 'paladin',
@@ -119,7 +119,7 @@ export const HEROES: Hero[] = [
     color: '#f59e0b',
     accentColor: '#fbbf24',
     unlocked: false,
-    gemCost: 600,
+    gemCost: 2000,
   },
   {
     id: 'gojo',
@@ -139,7 +139,7 @@ export const HEROES: Hero[] = [
     color: '#0284c7',
     accentColor: '#38bdf8',
     unlocked: false,
-    gemCost: 400,
+    gemCost: 2500,
   },
   {
     id: 'goku',
@@ -159,7 +159,7 @@ export const HEROES: Hero[] = [
     color: '#eab308',
     accentColor: '#fde047',
     unlocked: false,
-    gemCost: 400,
+    gemCost: 3000,
   },
   {
     id: 'naruto',
@@ -179,7 +179,7 @@ export const HEROES: Hero[] = [
     color: '#ea580c',
     accentColor: '#fb923c',
     unlocked: false,
-    gemCost: 400,
+    gemCost: 2800,
   },
   {
     id: 'luffy',
@@ -199,7 +199,7 @@ export const HEROES: Hero[] = [
     color: '#ef4444',
     accentColor: '#fca5a5',
     unlocked: false,
-    gemCost: 400,
+    gemCost: 2800,
   },
   {
     id: 'saitama',
@@ -219,7 +219,7 @@ export const HEROES: Hero[] = [
     color: '#f59e0b',
     accentColor: '#fde68a',
     unlocked: false,
-    gemCost: 400,
+    gemCost: 4000,
   },
   {
     id: 'jinwoo',
@@ -239,7 +239,7 @@ export const HEROES: Hero[] = [
     color: '#7c3aed',
     accentColor: '#a78bfa',
     unlocked: false,
-    gemCost: 400,
+    gemCost: 3500,
   },
 ];
 

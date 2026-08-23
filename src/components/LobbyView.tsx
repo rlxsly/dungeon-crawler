@@ -4,6 +4,8 @@ import { WEAPONS, getWeaponById } from '../data/weapons';
 import { Hero, Pet, Weapon, GameSaveData } from '../types/game';
 import { sound } from '../utils/audio';
 import { HeroPreviewCanvas, PetPreviewCanvas } from './SpritePreviewCanvas';
+import { WeaponIndexModal } from './WeaponIndexModal';
+import { GuideModal } from './GuideModal';
 import {
   Shield,
   Heart,
@@ -22,6 +24,7 @@ import {
   Volume2,
   VolumeX,
   Settings,
+  HelpCircle,
 } from 'lucide-react';
 
 interface LobbyViewProps {
@@ -29,6 +32,8 @@ interface LobbyViewProps {
   onUpdateSave: (newSave: GameSaveData) => void;
   onStartDungeon: (hero: Hero, pet: Pet, startingWeapon: Weapon) => void;
   onOpenSettings?: () => void;
+  onOpenWeaponIndex?: () => void;
+  onOpenGuide?: () => void;
 }
 
 export const LobbyView: React.FC<LobbyViewProps> = ({
@@ -36,6 +41,8 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
   onUpdateSave,
   onStartDungeon,
   onOpenSettings,
+  onOpenWeaponIndex,
+  onOpenGuide,
 }) => {
   const [selectedHeroIndex, setSelectedHeroIndex] = useState(
     Math.max(0, HEROES.findIndex((h) => h.id === saveData.selectedHeroId))
@@ -43,13 +50,13 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
   const [selectedPetIndex, setSelectedPetIndex] = useState(
     Math.max(0, PETS.findIndex((p) => p.id === saveData.selectedPetId))
   );
-  const [activeTab, setActiveTab] = useState<'heroes' | 'pets' | 'forge' | 'safe'>('heroes');
+  const [activeTab, setActiveTab] = useState<'heroes' | 'pets' | 'forge' | 'weapons' | 'guide' | 'safe'>('heroes');
   const [selectedWeaponId, setSelectedWeaponId] = useState<string>(HEROES[selectedHeroIndex].startingWeaponId);
-  const [safeClaimed, setSafeClaimed] = useState(false);
 
   const currentHero = HEROES[selectedHeroIndex];
   const currentPet = PETS[selectedPetIndex];
   const isHeroUnlocked = saveData.unlockedHeroes.includes(currentHero.id) || currentHero.unlocked;
+  const isSafeClaimed = Boolean(saveData.dailyBonusClaimed);
 
   const handleSelectHero = (idx: number) => {
     setSelectedHeroIndex(idx);
@@ -74,12 +81,15 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
     }
   };
 
-  const handleUpgradeHeroStat = (stat: 'hp' | 'shield' | 'energy') => {
-    const cost = 50;
-    if (saveData.gems >= cost) {
-      const heroUpgrades = { ...saveData.heroUpgrades };
-      const current = heroUpgrades[currentHero.id] || { hpLevel: 0, shieldLevel: 0, energyLevel: 0 };
+  const getUpgradeCost = (level: number) => 100 + level * 50;
 
+  const handleUpgradeHeroStat = (stat: 'hp' | 'shield' | 'energy') => {
+    const heroUpgrades = { ...saveData.heroUpgrades };
+    const current = heroUpgrades[currentHero.id] || { hpLevel: 0, shieldLevel: 0, energyLevel: 0 };
+    const currentLevel = stat === 'hp' ? current.hpLevel : stat === 'shield' ? current.shieldLevel : current.energyLevel;
+    const cost = getUpgradeCost(currentLevel);
+
+    if (saveData.gems >= cost) {
       if (stat === 'hp') current.hpLevel += 1;
       if (stat === 'shield') current.shieldLevel += 1;
       if (stat === 'energy') current.energyLevel += 1;
@@ -91,15 +101,17 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
         heroUpgrades,
       });
       sound.playCoin();
+    } else {
+      sound.playShoot('pistol');
     }
   };
 
   const handleClaimSafe = () => {
-    if (!safeClaimed) {
-      setSafeClaimed(true);
+    if (!isSafeClaimed) {
       onUpdateSave({
         ...saveData,
-        gems: saveData.gems + 100,
+        gems: saveData.gems + 150,
+        dailyBonusClaimed: true,
       });
       sound.playChestOpen();
     }
@@ -172,7 +184,7 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
           <div className="flex items-center gap-2 border-b-2 border-[#252545] pb-2 flex-wrap">
             <button
               onClick={() => setActiveTab('heroes')}
-              className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border-2 ${
+              className={`px-3 sm:px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border-2 ${
                 activeTab === 'heroes'
                   ? 'bg-[#3effc3] text-[#0c0c16] border-[#3effc3] shadow-[2px_2px_0px_#000]'
                   : 'bg-[#1a1a2e] text-[#8a8aa8] border-[#252545] hover:border-[#3effc3] hover:text-white'
@@ -182,7 +194,7 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
             </button>
             <button
               onClick={() => setActiveTab('pets')}
-              className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border-2 ${
+              className={`px-3 sm:px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border-2 ${
                 activeTab === 'pets'
                   ? 'bg-[#3effc3] text-[#0c0c16] border-[#3effc3] shadow-[2px_2px_0px_#000]'
                   : 'bg-[#1a1a2e] text-[#8a8aa8] border-[#252545] hover:border-[#3effc3] hover:text-white'
@@ -192,7 +204,7 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
             </button>
             <button
               onClick={() => setActiveTab('forge')}
-              className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border-2 ${
+              className={`px-3 sm:px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border-2 ${
                 activeTab === 'forge'
                   ? 'bg-[#3effc3] text-[#0c0c16] border-[#3effc3] shadow-[2px_2px_0px_#000]'
                   : 'bg-[#1a1a2e] text-[#8a8aa8] border-[#252545] hover:border-[#3effc3] hover:text-white'
@@ -201,8 +213,30 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
               WEAPON FORGE
             </button>
             <button
+              onClick={() => setActiveTab('weapons')}
+              className={`px-3 sm:px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border-2 flex items-center gap-1.5 ${
+                activeTab === 'weapons'
+                  ? 'bg-[#ffd700] text-[#0c0c16] border-[#ffd700] shadow-[2px_2px_0px_#000]'
+                  : 'bg-[#1a1a2e] text-[#ffd700] border-[#252545] hover:border-[#ffd700]'
+              }`}
+            >
+              <Swords className="w-3.5 h-3.5" />
+              WEAPONS CODEX
+            </button>
+            <button
+              onClick={() => setActiveTab('guide')}
+              className={`px-3 sm:px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border-2 flex items-center gap-1.5 ${
+                activeTab === 'guide'
+                  ? 'bg-[#38bdf8] text-[#0c0c16] border-[#38bdf8] shadow-[2px_2px_0px_#000]'
+                  : 'bg-[#1a1a2e] text-[#38bdf8] border-[#252545] hover:border-[#38bdf8]'
+              }`}
+            >
+              <HelpCircle className="w-3.5 h-3.5" />
+              FIELD GUIDE
+            </button>
+            <button
               onClick={() => setActiveTab('safe')}
-              className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border-2 ${
+              className={`px-3 sm:px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border-2 ${
                 activeTab === 'safe'
                   ? 'bg-[#3effc3] text-[#0c0c16] border-[#3effc3] shadow-[2px_2px_0px_#000]'
                   : 'bg-[#1a1a2e] text-[#8a8aa8] border-[#252545] hover:border-[#3effc3] hover:text-white'
@@ -280,16 +314,16 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                   <div className="flex items-center gap-2">
                     <Heart className="w-4 h-4 text-[#ff3e3e] fill-[#ff3e3e]" />
                     <div>
-                      <div className="text-[10px] text-[#8a8aa8] font-bold uppercase">HEALTH</div>
+                      <div className="text-[10px] text-[#8a8aa8] font-bold uppercase">HEALTH (LV {currentUpgrades.hpLevel})</div>
                       <div className="text-sm font-black text-[#ff3e3e]">{effectiveHp} HP</div>
                     </div>
                   </div>
                   <button
                     onClick={() => handleUpgradeHeroStat('hp')}
                     className="text-[10px] font-bold px-2.5 py-1 bg-[#1a1a2e] hover:bg-[#ff3e3e] hover:text-[#0c0c16] active:translate-x-0.5 active:translate-y-0.5 text-[#ff3e3e] border border-[#ff3e3e] cursor-pointer flex items-center gap-1 transition-all"
-                    title="Upgrade HP (+1) for 50 Gems"
+                    title={`Upgrade HP (+1) for ${getUpgradeCost(currentUpgrades.hpLevel)} Gems`}
                   >
-                    +1 <Gem className="w-2.5 h-2.5" />50
+                    +1 <Gem className="w-2.5 h-2.5" />{getUpgradeCost(currentUpgrades.hpLevel)}
                   </button>
                 </div>
 
@@ -298,16 +332,16 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                   <div className="flex items-center gap-2">
                     <Shield className="w-4 h-4 text-[#3e93ff] fill-[#3e93ff]" />
                     <div>
-                      <div className="text-[10px] text-[#8a8aa8] font-bold uppercase">SHIELD</div>
+                      <div className="text-[10px] text-[#8a8aa8] font-bold uppercase">SHIELD (LV {currentUpgrades.shieldLevel})</div>
                       <div className="text-sm font-black text-[#3e93ff]">{effectiveShield} ARMOR</div>
                     </div>
                   </div>
                   <button
                     onClick={() => handleUpgradeHeroStat('shield')}
                     className="text-[10px] font-bold px-2.5 py-1 bg-[#1a1a2e] hover:bg-[#3e93ff] hover:text-[#0c0c16] active:translate-x-0.5 active:translate-y-0.5 text-[#3e93ff] border border-[#3e93ff] cursor-pointer flex items-center gap-1 transition-all"
-                    title="Upgrade Shield (+1) for 50 Gems"
+                    title={`Upgrade Shield (+1) for ${getUpgradeCost(currentUpgrades.shieldLevel)} Gems`}
                   >
-                    +1 <Gem className="w-2.5 h-2.5" />50
+                    +1 <Gem className="w-2.5 h-2.5" />{getUpgradeCost(currentUpgrades.shieldLevel)}
                   </button>
                 </div>
 
@@ -316,16 +350,16 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                   <div className="flex items-center gap-2">
                     <Zap className="w-4 h-4 text-[#ffd700] fill-[#ffd700]" />
                     <div>
-                      <div className="text-[10px] text-[#8a8aa8] font-bold uppercase">ENERGY</div>
+                      <div className="text-[10px] text-[#8a8aa8] font-bold uppercase">ENERGY (LV {currentUpgrades.energyLevel})</div>
                       <div className="text-sm font-black text-[#ffd700]">{effectiveEnergy} MANA</div>
                     </div>
                   </div>
                   <button
                     onClick={() => handleUpgradeHeroStat('energy')}
                     className="text-[10px] font-bold px-2.5 py-1 bg-[#1a1a2e] hover:bg-[#ffd700] hover:text-[#0c0c16] active:translate-x-0.5 active:translate-y-0.5 text-[#ffd700] border border-[#ffd700] cursor-pointer flex items-center gap-1 transition-all"
-                    title="Upgrade Energy (+20) for 50 Gems"
+                    title={`Upgrade Energy (+20) for ${getUpgradeCost(currentUpgrades.energyLevel)} Gems`}
                   >
-                    +20 <Gem className="w-2.5 h-2.5" />50
+                    +20 <Gem className="w-2.5 h-2.5" />{getUpgradeCost(currentUpgrades.energyLevel)}
                   </button>
                 </div>
               </div>
@@ -401,26 +435,47 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
             </div>
           )}
 
-          {/* TAB 4: SAFE & TREASURY */}
+          {/* TAB 4: WEAPONS CODEX & RARITY INDEX */}
+          {activeTab === 'weapons' && (
+            <div className="bg-[#1a1a2e] border-2 border-[#252545] p-5 shadow-[6px_6px_0px_#000]">
+              <WeaponIndexModal isEmbedded={true} craftedWeapons={saveData.craftedWeapons} />
+            </div>
+          )}
+
+          {/* TAB 5: FIELD GUIDE & TACTICAL MANUAL */}
+          {activeTab === 'guide' && (
+            <div className="bg-[#1a1a2e] border-2 border-[#252545] p-5 shadow-[6px_6px_0px_#000]">
+              <GuideModal isEmbedded={true} />
+            </div>
+          )}
+
+          {/* TAB 6: SAFE & TREASURY */}
           {activeTab === 'safe' && (
             <div className="bg-[#1a1a2e] border-2 border-[#252545] p-6 shadow-[6px_6px_0px_#000] flex flex-col items-center text-center gap-3">
-              <div className="w-16 h-16 bg-[#0c0c16] border-2 border-[#ffd700] flex items-center justify-center text-[#ffd700] shadow-[3px_3px_0px_#000]">
+              <div className={`w-16 h-16 bg-[#0c0c16] border-2 flex items-center justify-center shadow-[3px_3px_0px_#000] ${
+                isSafeClaimed ? 'border-[#252545] text-[#656585]' : 'border-[#ffd700] text-[#ffd700]'
+              }`}>
                 <Sparkles className="w-8 h-8" />
               </div>
-              <h3 className="text-base font-bold text-white uppercase tracking-wider">DAILY SAFE TREASURY</h3>
+              <div className="text-[10px] text-[#ffd700] font-black uppercase tracking-widest">
+                {isSafeClaimed ? 'VAULT EMPTIED' : 'ONE-TIME SUPPLY BONUS'}
+              </div>
+              <h3 className="text-base font-bold text-white uppercase tracking-wider">OUTPOST SAFE & SUPPLY VAULT</h3>
               <p className="text-xs text-[#8a8aa8] max-w-md">
-                Open the vault to claim 100 free gems to unlock heroes and upgrade combat statistics!
+                {isSafeClaimed
+                  ? 'This outpost supply chest has already been claimed. Slay bosses and clear dungeons to gather more gems!'
+                  : 'Open the outpost bonus vault to claim 150 free gems to unlock heroes and upgrade combat statistics! (Bonus claimable once)'}
               </p>
               <button
                 onClick={handleClaimSafe}
-                disabled={safeClaimed}
+                disabled={isSafeClaimed}
                 className={`px-5 py-2.5 text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer border-2 ${
-                  safeClaimed
+                  isSafeClaimed
                     ? 'bg-[#0c0c16] text-[#656585] border-[#252545] cursor-not-allowed'
                     : 'bg-[#ffd700] hover:bg-[#f0c800] text-[#0c0c16] border-[#ffd700] shadow-[4px_4px_0px_#000]'
                 }`}
               >
-                {safeClaimed ? 'VAULT EMPTIED TODAY' : 'OPEN VAULT (+100 GEMS)'}
+                {isSafeClaimed ? 'BONUS CHEST CLAIMED' : 'OPEN VAULT (+150 GEMS)'}
               </button>
             </div>
           )}

@@ -1,6 +1,19 @@
 import React, { useState } from 'react';
 import { sound } from '../utils/audio';
-import { Volume2, VolumeX, X, Crosshair, HelpCircle, Gamepad2, RotateCcw, Trash2, AlertTriangle, Check } from 'lucide-react';
+import {
+  Volume2,
+  VolumeX,
+  X,
+  Crosshair,
+  HelpCircle,
+  Gamepad2,
+  RotateCcw,
+  Trash2,
+  AlertTriangle,
+  Check,
+  BookOpen,
+  Swords,
+} from 'lucide-react';
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -8,6 +21,8 @@ interface SettingsModalProps {
   onToggleAutoAim: (enabled: boolean) => void;
   onResetStats?: () => void;
   onResetAllProgress?: () => void;
+  onOpenWeaponsIndex?: () => void;
+  onOpenGuide?: () => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -16,6 +31,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onToggleAutoAim,
   onResetStats,
   onResetAllProgress,
+  onOpenWeaponsIndex,
+  onOpenGuide,
 }) => {
   const [isMuted, setIsMuted] = useState(sound.getIsMuted());
   const [confirmResetStats, setConfirmResetStats] = useState(false);
@@ -187,6 +204,35 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 )}
               </div>
             </div>
+          )}
+        </div>
+
+        {/* QUICK ACCESS: WEAPON INDEX & GUIDE */}
+        <div className="grid grid-cols-2 gap-2">
+          {onOpenWeaponsIndex && (
+            <button
+              onClick={() => {
+                onClose();
+                onOpenWeaponsIndex();
+              }}
+              className="p-2.5 bg-[#0c0c16] hover:bg-[#252545] border-2 border-[#ffd700] hover:border-[#ffe247] text-white flex items-center justify-center gap-2 text-xs font-black uppercase cursor-pointer shadow-[2px_2px_0px_#000] transition-all"
+            >
+              <Swords className="w-4 h-4 text-[#ffd700]" />
+              WEAPONS CODEX
+            </button>
+          )}
+
+          {onOpenGuide && (
+            <button
+              onClick={() => {
+                onClose();
+                onOpenGuide();
+              }}
+              className="p-2.5 bg-[#0c0c16] hover:bg-[#252545] border-2 border-[#3effc3] hover:border-[#65ffd0] text-white flex items-center justify-center gap-2 text-xs font-black uppercase cursor-pointer shadow-[2px_2px_0px_#000] transition-all"
+            >
+              <BookOpen className="w-4 h-4 text-[#3effc3]" />
+              FIELD GUIDE
+            </button>
           )}
         </div>
 

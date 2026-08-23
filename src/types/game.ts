@@ -326,4 +326,5 @@ export interface GameSaveData {
   selectedPetId: string;
   heroUpgrades: { [key in HeroClass]?: { hpLevel: number; shieldLevel: number; energyLevel: number } };
   craftedWeapons: string[];
+  dailyBonusClaimed?: boolean;
 }

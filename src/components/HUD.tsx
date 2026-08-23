@@ -11,12 +11,16 @@ import {
   Sparkles,
   Pause,
   Settings,
+  BookOpen,
+  Swords,
 } from 'lucide-react';
 
 interface HUDProps {
   state: GameEngineState;
   onPause: () => void;
   onOpenSettings: () => void;
+  onOpenWeaponsIndex?: () => void;
+  onOpenGuide?: () => void;
   onSkillTrigger: () => void;
   onWeaponSwitch: () => void;
 }
@@ -25,6 +29,8 @@ export const HUD: React.FC<HUDProps> = ({
   state,
   onPause,
   onOpenSettings,
+  onOpenWeaponsIndex,
+  onOpenGuide,
   onSkillTrigger,
   onWeaponSwitch,
 }) => {
@@ -123,6 +129,24 @@ export const HUD: React.FC<HUDProps> = ({
               <Gem className="w-3.5 h-3.5 text-[#3effc3] fill-[#3effc3]" />
               <span>{gemsEarned}</span>
             </div>
+            {onOpenWeaponsIndex && (
+              <button
+                onClick={onOpenWeaponsIndex}
+                className="p-1.5 bg-[#1a1a2e] hover:bg-[#252545] hover:border-[#ffd700] active:translate-x-0.5 active:translate-y-0.5 border-2 border-[#252545] text-[#ffd700] shadow-[2px_2px_0px_#000] transition-all cursor-pointer hidden sm:flex"
+                title="Weapons Codex & Rarities"
+              >
+                <Swords className="w-4 h-4" />
+              </button>
+            )}
+            {onOpenGuide && (
+              <button
+                onClick={onOpenGuide}
+                className="p-1.5 bg-[#1a1a2e] hover:bg-[#252545] hover:border-[#3effc3] active:translate-x-0.5 active:translate-y-0.5 border-2 border-[#252545] text-[#3effc3] shadow-[2px_2px_0px_#000] transition-all cursor-pointer hidden sm:flex"
+                title="Crawler Field Guide"
+              >
+                <BookOpen className="w-4 h-4" />
+              </button>
+            )}
             <button
               onClick={onOpenSettings}
               className="p-1.5 bg-[#1a1a2e] hover:bg-[#252545] hover:border-[#3effc3] active:translate-x-0.5 active:translate-y-0.5 border-2 border-[#252545] text-[#e0e0ed] shadow-[2px_2px_0px_#000] transition-all cursor-pointer"

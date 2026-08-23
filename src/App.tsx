@@ -37,6 +37,8 @@ import { SettingsModal } from './components/SettingsModal';
 import { StatueModal } from './components/StatueModal';
 import { TouchControls } from './components/TouchControls';
 import { BossBattleView } from './components/BossBattleView';
+import { WeaponIndexModal } from './components/WeaponIndexModal';
+import { GuideModal } from './components/GuideModal';
 
 const STORAGE_KEY = 'soul_knight_roguelike_save_v1';
 
@@ -50,6 +52,7 @@ const DEFAULT_SAVE: GameSaveData = {
   selectedPetId: 'pet_cat',
   heroUpgrades: {},
   craftedWeapons: ['bad_pistol', 'rusty_sword'],
+  dailyBonusClaimed: false,
 };
 
 function getInteractPromptInfo(state: GameEngineState | null): { canInteract: boolean; label: string } {
