@@ -52,6 +52,36 @@ const DEFAULT_SAVE: GameSaveData = {
   craftedWeapons: ['bad_pistol', 'rusty_sword'],
 };
 
+function getInteractPromptInfo(state: GameEngineState | null): { canInteract: boolean; label: string } {
+  if (!state) return { canInteract: false, label: 'USE' };
+  const { player, currentRoom } = state;
+
+  // Dropped weapon
+  for (const drop of state.drops) {
+    if (drop.type === 'weapon' && drop.weapon) {
+      if (Math.hypot(player.x - drop.x, player.y - drop.y) < 75) {
+        return { canInteract: true, label: 'EQUIP' };
+      }
+    }
+  }
+
+  // Obstacles
+  for (const obs of currentRoom.obstacles) {
+    const cx = obs.x + obs.width / 2;
+    const cy = obs.y + obs.height / 2;
+    if (Math.hypot(player.x - cx, player.y - cy) < 85) {
+      if (obs.type === 'chest' && !obs.opened) return { canInteract: true, label: 'OPEN' };
+      if (obs.type === 'shop_item' && obs.data && !obs.data.bought) return { canInteract: true, label: 'BUY' };
+      if (obs.type === 'upgrade_anvil' && (!obs.data || !obs.data.upgraded)) return { canInteract: true, label: 'FORGE' };
+      if (obs.type === 'magic_spring' && (!obs.data || !obs.data.used)) return { canInteract: true, label: 'DRINK' };
+      if (obs.type === 'statue' && currentRoom.statueBlessing && !currentRoom.statueBlessing.prayed) return { canInteract: true, label: 'PRAY' };
+      if (obs.type === 'portal') return { canInteract: true, label: 'PORTAL' };
+    }
+  }
+
+  return { canInteract: false, label: 'USE' };
+}
+
 export default function App() {
   // Load or initialize save data
   const [saveData, setSaveData] = useState<GameSaveData>(() => {
@@ -319,7 +349,7 @@ export default function App() {
         state.currentRoom.statueBlessing.prayed = true;
       }
 
-      createFloatingText(state, state.player.x, state.player.y - 28, 'BLESSED!', '#38bdf8', true);
+      createFloatingText(state, state.player.x, state.player.y - 28, 'GUARDIAN BLESSED!', '#38bdf8', true);
       createRadialParticles(state, state.player.x, state.player.y, '#38bdf8', 4);
       setStatueModalData(null);
     }
@@ -648,21 +678,30 @@ export default function App() {
                 }}
               />
 
-              {/* TOUCH CONTROLS (FOR TABLET / TOUCH / HYBRID DEVICES) */}
-              <TouchControls
-                onMove={(vec) => {
-                  touchMoveVecRef.current = vec;
-                }}
-                onFireChange={(firing) => {
-                  isTouchFiringRef.current = firing;
-                }}
-                onSkill={() => {
-                  if (engineStateRef.current) activateHeroSkill(engineStateRef.current);
-                }}
-                onSwitchWeapon={() => {
-                  if (engineStateRef.current) switchWeapon(engineStateRef.current);
-                }}
-              />
+              {/* TOUCH CONTROLS (FOR MOBILE / TABLET / TOUCH DEVICES) */}
+              {(() => {
+                const interactInfo = getInteractPromptInfo(engineStateRef.current);
+                return (
+                  <TouchControls
+                    onMove={(vec) => {
+                      touchMoveVecRef.current = vec;
+                    }}
+                    onFireChange={(firing) => {
+                      isTouchFiringRef.current = firing;
+                    }}
+                    onSkill={() => {
+                      if (engineStateRef.current) activateHeroSkill(engineStateRef.current);
+                    }}
+                    onSwitchWeapon={() => {
+                      if (engineStateRef.current) switchWeapon(engineStateRef.current);
+                    }}
+                    onInteract={handleInteract}
+                    canInteract={interactInfo.canInteract}
+                    interactLabel={interactInfo.label}
+                    skillCooldownRemaining={engineStateRef.current?.player.skillCooldownRemaining || 0}
+                  />
+                );
+              })()}
             </>
           )}
         </div>

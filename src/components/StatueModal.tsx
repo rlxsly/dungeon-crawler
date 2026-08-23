@@ -51,12 +51,15 @@ export const StatueModal: React.FC<StatueModalProps> = ({
           <Sparkles className="w-7 h-7" />
         </div>
 
+        <div className="text-[10px] text-[#3effc3] font-black uppercase tracking-widest mb-0.5">
+          GUARDIAN SHRINE
+        </div>
         <h3 className="text-base font-black uppercase tracking-wider text-white mb-1">{statueName}</h3>
         <p className="text-xs text-[#8a8aa8] mb-4">{getBlessingDescription()}</p>
 
         <div className="flex items-center gap-1.5 text-xs text-[#ffd700] font-bold mb-5 px-3 py-1.5 bg-[#0c0c16] border-2 border-[#252545] shadow-[2px_2px_0px_#000]">
           <Coins className="w-4 h-4 text-[#ffd700]" />
-          <span>TRIBUTE COST: {cost} GOLD</span>
+          <span>OFFERING: {cost} GOLD</span>
         </div>
 
         <div className="flex items-center gap-2.5 w-full">
@@ -75,7 +78,7 @@ export const StatueModal: React.FC<StatueModalProps> = ({
                 : 'bg-[#0c0c16] text-[#656585] border-[#252545] cursor-not-allowed'
             }`}
           >
-            PRAY ({cost} G)
+            PRAY TO GUARDIAN ({cost} G)
           </button>
         </div>
       </div>

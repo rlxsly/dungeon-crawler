@@ -93,49 +93,41 @@ export function generateDungeonLevel(stage: number, floor: number): DungeonLevel
     otherIndices[j] = temp;
   }
 
-  // Dynamic, randomized special rooms pool per floor
-  const specialPool: RoomType[] = [];
-
-  // Chest rooms: Always at least 1, with 45% chance for a second
-  specialPool.push('chest');
-  if (Math.random() < 0.45 && otherIndices.length > 3) {
-    specialPool.push('chest');
-  }
-
-  // Shop rooms: 75% chance for a merchant shop, 25% chance for secondary boutique
-  if (Math.random() < 0.75) {
-    specialPool.push('shop');
-    if (Math.random() < 0.25 && otherIndices.length > 4) {
-      specialPool.push('shop');
-    }
-  }
-
-  // Shrines & Statues: 70% chance to spawn an ancient god statue
-  if (Math.random() < 0.7) {
-    specialPool.push('statue');
-    if (Math.random() < 0.3 && otherIndices.length > 5) {
-      specialPool.push('statue');
-    }
-  }
-
-  // Upgrade Forges / Springs: 55% chance for blacksmith / wishing spring
-  if (Math.random() < 0.55) {
-    specialPool.push('upgrade');
-  }
-
-  // Shuffle special pool
-  for (let i = specialPool.length - 1; i > 0; i--) {
+  // Dynamic, fully randomized special rooms composition per floor
+  // (e.g. Stage 1 may have Shop + Chest, next floor Guardian + Upgrade, etc.)
+  const possibleSpecialTypes: RoomType[] = ['chest', 'shop', 'statue', 'upgrade'];
+  // Shuffle candidate room types
+  for (let i = possibleSpecialTypes.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    const temp = specialPool[i];
-    specialPool[i] = specialPool[j];
-    specialPool[j] = temp;
+    const temp = possibleSpecialTypes[i];
+    possibleSpecialTypes[i] = possibleSpecialTypes[j];
+    possibleSpecialTypes[j] = temp;
   }
 
-  // Distribute special rooms randomly across available slots (cap at ~45% of rooms so majority are combat)
-  const maxSpecials = Math.min(specialPool.length, Math.max(1, Math.floor(otherIndices.length * 0.45)));
-  for (let i = 0; i < maxSpecials; i++) {
-    typeAssignments[otherIndices[i]] = specialPool[i];
+  // Determine number of special rooms for this floor (between 1 and 3 depending on floor size)
+  const maxAllowedSpecials = Math.min(
+    otherIndices.length - 1,
+    Math.max(1, Math.floor(otherIndices.length * 0.4))
+  );
+  // Pick random count between 1 and maxAllowedSpecials
+  const numSpecials = Math.max(1, Math.min(maxAllowedSpecials, 1 + Math.floor(Math.random() * 3)));
+
+  const floorSpecials: RoomType[] = [];
+  for (let i = 0; i < numSpecials; i++) {
+    if (i < possibleSpecialTypes.length) {
+      floorSpecials.push(possibleSpecialTypes[i]);
+    } else {
+      // Occasional repeat (e.g. secondary chest or shop)
+      floorSpecials.push(Math.random() < 0.5 ? 'chest' : 'shop');
+    }
   }
+
+  // Assign special rooms to randomized positions
+  floorSpecials.forEach((specialType, idx) => {
+    if (idx < otherIndices.length) {
+      typeAssignments[otherIndices[idx]] = specialType;
+    }
+  });
 
   const stepX = ROOM_WIDTH + CORRIDOR_LENGTH;
   const stepY = ROOM_HEIGHT + CORRIDOR_LENGTH;
@@ -556,18 +548,18 @@ function generateRoomContent(room: Room, stage: number, floor: number, biome: st
       });
     });
   } else if (type === 'statue') {
-    // 8 Expanded Ancient God Statues with varying blessings
-    const statues = [
-      { name: 'Statue of the Knight', cost: 15, type: 'knight_buff' },
-      { name: 'Statue of the Paladin', cost: 20, type: 'paladin_buff' },
-      { name: 'Statue of the Assassin', cost: 15, type: 'assassin_buff' },
-      { name: 'Statue of the Priest', cost: 20, type: 'priest_buff' },
-      { name: 'Statue of the Wizard', cost: 20, type: 'wizard_buff' },
-      { name: 'Statue of the Berserker', cost: 25, type: 'berserker_buff' },
-      { name: 'Statue of the Rogue', cost: 18, type: 'rogue_buff' },
-      { name: 'Statue of the Thief', cost: 15, type: 'thief_buff' },
+    // 8 Ancient Dungeon Guardians with unique boons & blessings
+    const guardians = [
+      { name: 'Guardian of the Knight', cost: 15, type: 'knight_buff' },
+      { name: 'Guardian of the Paladin', cost: 20, type: 'paladin_buff' },
+      { name: 'Guardian of the Assassin', cost: 15, type: 'assassin_buff' },
+      { name: 'Guardian of the Priest', cost: 20, type: 'priest_buff' },
+      { name: 'Guardian of the Wizard', cost: 20, type: 'wizard_buff' },
+      { name: 'Guardian of the Berserker', cost: 25, type: 'berserker_buff' },
+      { name: 'Guardian of the Rogue', cost: 18, type: 'rogue_buff' },
+      { name: 'Guardian of the Thief', cost: 15, type: 'thief_buff' },
     ];
-    const chosen = statues[Math.floor(Math.random() * statues.length)];
+    const chosen = guardians[Math.floor(Math.random() * guardians.length)];
     room.statueBlessing = { ...chosen, prayed: false };
 
     obstacles.push({

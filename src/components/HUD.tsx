@@ -153,23 +153,44 @@ export const HUD: React.FC<HUDProps> = ({
                   const isVisited = room.visited;
 
                   let cellColor = 'bg-[#252545]/40';
+                  let roomTitle = room.type;
                   if (isCurrent) cellColor = 'bg-[#3effc3] animate-pulse';
                   else if (isVisited) {
-                    if (room.type === 'start') cellColor = 'bg-[#3e93ff]';
-                    else if (room.type === 'shop') cellColor = 'bg-[#ffd700]';
-                    else if (room.type === 'chest') cellColor = 'bg-[#3effc3]/80';
-                    else if (room.type === 'boss') cellColor = 'bg-[#ff3e3e]';
-                    else cellColor = 'bg-[#8a8aa8]';
+                    if (room.type === 'start') {
+                      cellColor = 'bg-[#3e93ff]';
+                      roomTitle = 'Starting Chamber';
+                    } else if (room.type === 'shop') {
+                      cellColor = 'bg-[#ffd700]';
+                      roomTitle = 'Merchant Outpost';
+                    } else if (room.type === 'chest') {
+                      cellColor = 'bg-[#3effc3]/80';
+                      roomTitle = 'Treasure Vault';
+                    } else if (room.type === 'statue') {
+                      cellColor = 'bg-[#c084fc]';
+                      roomTitle = 'Guardian Shrine';
+                    } else if (room.type === 'upgrade') {
+                      cellColor = 'bg-[#fb923c]';
+                      roomTitle = 'Upgrade Forge & Spring';
+                    } else if (room.type === 'boss') {
+                      cellColor = 'bg-[#ff3e3e]';
+                      roomTitle = 'Boss Chamber';
+                    } else {
+                      cellColor = 'bg-[#8a8aa8]';
+                      roomTitle = 'Dungeon Chamber';
+                    }
                   }
 
                   return (
                     <div
                       key={`${rIdx}_${cIdx}`}
                       className={`w-4 h-4 transition-colors ${cellColor} flex items-center justify-center border border-[#0c0c16]`}
-                      title={room.type}
+                      title={roomTitle}
                     >
                       {room.type === 'boss' && isVisited && (
                         <div className="w-1.5 h-1.5 bg-white" />
+                      )}
+                      {room.type === 'statue' && isVisited && (
+                        <div className="w-1.5 h-1.5 bg-white rounded-full" />
                       )}
                     </div>
                   );

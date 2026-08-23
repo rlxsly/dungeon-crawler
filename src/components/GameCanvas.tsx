@@ -27,6 +27,49 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ state, onAim, onInteract
     onAim({ x: worldX, y: worldY });
   };
 
+  const handleTouchAim = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas || e.touches.length === 0) return;
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const screenX = touch.clientX - rect.left;
+    const screenY = touch.clientY - rect.top;
+
+    const worldX = screenX - canvas.width / 2 + cameraRef.current.x;
+    const worldY = screenY - canvas.height / 2 + cameraRef.current.y;
+
+    onAim({ x: worldX, y: worldY });
+  };
+
+  const handleClickOrTap = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    let clientX = 0;
+    let clientY = 0;
+
+    if ('changedTouches' in e && e.changedTouches.length > 0) {
+      clientX = e.changedTouches[0].clientX;
+      clientY = e.changedTouches[0].clientY;
+    } else if ('clientX' in e) {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    const screenX = clientX - rect.left;
+    const screenY = clientY - rect.top;
+
+    const worldX = screenX - canvas.width / 2 + cameraRef.current.x;
+    const worldY = screenY - canvas.height / 2 + cameraRef.current.y;
+
+    // Check if clicked close to player or any interactable
+    const distToPlayer = Math.hypot(worldX - state.player.x, worldY - state.player.y);
+    if (distToPlayer < 120) {
+      onInteract?.();
+    }
+  };
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -109,7 +152,10 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ state, onAim, onInteract
       <canvas
         ref={canvasRef}
         onMouseMove={handleMouseMove}
-        className="w-full h-full block cursor-crosshair"
+        onTouchStart={handleTouchAim}
+        onTouchMove={handleTouchAim}
+        onClick={handleClickOrTap}
+        className="w-full h-full block cursor-crosshair touch-none"
       />
     </div>
   );
@@ -471,17 +517,17 @@ function renderObstacles(ctx: CanvasRenderingContext2D, state: GameEngineState) 
         break;
       }
       case 'statue': {
-        // Hero Shrine Statue
+        // Ancient Guardian Shrine
         const cx = obs.x + obs.width / 2;
         const cy = obs.y + obs.height / 2;
 
-        ctx.fillStyle = '#475569';
+        ctx.fillStyle = '#334155';
         ctx.beginPath();
         ctx.roundRect(obs.x, obs.y, obs.width, obs.height, 8);
         ctx.fill();
 
-        // Statue rune
-        ctx.fillStyle = '#94a3b8';
+        // Guardian glowing rune
+        ctx.fillStyle = '#64748b';
         ctx.beginPath();
         ctx.arc(cx, cy - 14, 14, 0, Math.PI * 2);
         ctx.fill();
@@ -490,11 +536,11 @@ function renderObstacles(ctx: CanvasRenderingContext2D, state: GameEngineState) 
         ctx.lineWidth = 2;
         ctx.stroke();
 
-        // Shrine name
+        // Guardian title & price
         ctx.fillStyle = '#38bdf8';
         ctx.font = 'bold 12px system-ui, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(currentRoom.statueBlessing?.name || 'Statue', cx, obs.y - 12);
+        ctx.fillText(currentRoom.statueBlessing?.name || 'Guardian Shrine', cx, obs.y - 12);
         if (currentRoom.statueBlessing && !currentRoom.statueBlessing.prayed) {
           ctx.fillStyle = '#fbbf24';
           ctx.font = 'bold 11px system-ui, sans-serif';
@@ -879,7 +925,7 @@ function renderInteractionPrompts(ctx: CanvasRenderingContext2D, state: GameEngi
     if (drop.type === 'weapon' && drop.weapon) {
       const d = Math.hypot(player.x - drop.x, player.y - drop.y);
       if (d < 75) {
-        promptText = `[E / SPACE] Pick Up ${drop.weapon.name}`;
+        promptText = `[USE / E] Equip ${drop.weapon.name}`;
         promptX = drop.x;
         promptY = drop.y - 28;
         promptColor = drop.weapon.color;
@@ -896,14 +942,14 @@ function renderInteractionPrompts(ctx: CanvasRenderingContext2D, state: GameEngi
       const d = Math.hypot(player.x - cx, player.y - cy);
       if (d < 80) {
         if (obs.type === 'chest' && !obs.opened) {
-          promptText = '[E / SPACE] Open Chest';
+          promptText = '[USE / E] Open Chest';
           promptX = cx;
           promptY = obs.y - 22;
           promptColor = '#fbbf24';
           break;
         } else if (obs.type === 'shop_item' && obs.data && !obs.data.bought) {
           const item = obs.data;
-          promptText = `[E / SPACE] Buy (${item.cost} G)`;
+          promptText = `[USE / E] Buy (${item.cost} G)`;
           promptX = cx;
           promptY = obs.y - 22;
           promptColor = '#38bdf8';
@@ -911,7 +957,7 @@ function renderInteractionPrompts(ctx: CanvasRenderingContext2D, state: GameEngi
         } else if (obs.type === 'upgrade_anvil') {
           const forge = obs.data || currentRoom.upgradeForge || { cost: 25, upgraded: false };
           if (!forge.upgraded) {
-            promptText = `[E / SPACE] Upgrade Weapon (${forge.cost} G)`;
+            promptText = `[USE / E] Upgrade Weapon (${forge.cost} G)`;
             promptX = cx;
             promptY = obs.y - 24;
             promptColor = '#f97316';
@@ -920,20 +966,20 @@ function renderInteractionPrompts(ctx: CanvasRenderingContext2D, state: GameEngi
         } else if (obs.type === 'magic_spring') {
           const spring = obs.data || currentRoom.magicSpring || { cost: 15, used: false };
           if (!spring.used) {
-            promptText = `[E / SPACE] Drink Spring (${spring.cost} G)`;
+            promptText = `[USE / E] Drink Spring (${spring.cost} G)`;
             promptX = cx;
             promptY = obs.y - 24;
             promptColor = '#38bdf8';
             break;
           }
         } else if (obs.type === 'statue' && currentRoom.statueBlessing && !currentRoom.statueBlessing.prayed) {
-          promptText = `[E / SPACE] Pray at Statue (${currentRoom.statueBlessing.cost} G)`;
+          promptText = `[USE / E] Pray to ${currentRoom.statueBlessing.name} (${currentRoom.statueBlessing.cost} G)`;
           promptX = cx;
           promptY = obs.y - 24;
           promptColor = '#38bdf8';
           break;
         } else if (obs.type === 'portal') {
-          promptText = '[E / SPACE] Enter Portal';
+          promptText = '[USE / E] Enter Portal';
           promptX = cx;
           promptY = obs.y - 24;
           promptColor = '#c084fc';
